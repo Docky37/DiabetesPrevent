@@ -1,0 +1,94 @@
+// PatientAdmManager
+
+plugins {
+	id 'org.springframework.boot' version '2.4.0'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+	id 'java'
+	id 'jacoco'
+	id 'checkstyle'
+	id "com.github.spotbugs" version "4.6.0"
+}
+
+apply plugin: "com.github.spotbugs"
+
+group = 'com.mediscreen'
+version = '0.0.1-BETA'
+sourceCompatibility = '11'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	jcenter()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	//implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+    // REACTOR
+    implementation platform('io.projectreactor:reactor-bom:Dysprosium-SR14') 
+    implementation 'io.projectreactor.netty:reactor-netty-core' 
+    implementation 'io.projectreactor.netty:reactor-netty-http'    
+	testImplementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.0'
+	testImplementation group: 'com.squareup.okhttp3', name: 'mockwebserver', version: '4.9.0'
+
+	implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'	
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	//testImplementation 'org.springframework.security:spring-security-test'
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+
+	implementation group: 'com.puppycrawl.tools', name: 'checkstyle', version: '8.37'
+	implementation "io.springfox:springfox-boot-starter:3.0.0"
+	
+}
+
+// BOOT JAR ********************************************************************
+bootJar {
+    manifest {
+        attributes 'Start-Class': 'com.mediscreen.patient.manager.PatientAdmManagerApplication'
+    }
+    
+}
+
+test {
+	useJUnitPlatform()
+}
+
+// CHECKSTYLE *************************************************
+checkstyle {
+    configFile = file('config/checkstyle-checker.xml');
+    reportsDir = file("$project.buildDir/reports/checkstyle/")
+}
+
+checkstyleTest.enabled = false
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
+
+// SPOTBUGS****************************************************
+spotbugsMain {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+spotbugs {
+    spotbugsTest.enabled = false
+    spotbugsMain.enabled = false
+}
