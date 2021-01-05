@@ -8,13 +8,12 @@ import javax.validation.constraints.Past;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mediscreen.patientmanager.enums.Gender;
+import com.mediscreen.patientmanager.utils.AgeCalculation;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class PatientDTO {
 
@@ -47,5 +46,36 @@ public class PatientDTO {
      * The gender of this patient. Available values are 'M' for Male or 'F' for Female.
      */
     private Gender gender;
+
+    /**
+     * Calculate value from birthDate.
+     */
+    private int age;
+
+    /**
+     * All args class constructor.
+     *
+     * @param pPatientId
+     * @param pFirstName
+     * @param pLastName
+     * @param pBirthDate
+     * @param pGender
+     */
+    public PatientDTO(final UUID pPatientId, final String pFirstName, final String pLastName,
+            final LocalDate pBirthDate, final Gender pGender) {
+        patientId = pPatientId;
+        firstName = pFirstName;
+        lastName = pLastName;
+        birthDate = pBirthDate;
+        gender = pGender;
+        age = AgeCalculation.calculateAge(pBirthDate);
+    }
+
+    /**
+     * Setter of age attribute.
+     */
+    public void setAge() {
+        age = AgeCalculation.calculateAge(getBirthDate());
+    }
 
 }
