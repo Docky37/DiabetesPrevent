@@ -23,7 +23,7 @@ import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Mono;
 
 /**
- * This service class use a WebClient to request the API PatientAdm.
+ * This service class use a WebClient to request the API Patient.
  *
  * @author Thierry Schreiner
  */
