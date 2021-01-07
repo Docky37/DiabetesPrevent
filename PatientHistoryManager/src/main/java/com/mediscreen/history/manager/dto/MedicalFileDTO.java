@@ -3,8 +3,6 @@ package com.mediscreen.history.manager.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mediscreen.history.manager.dto.VisitDTO;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -42,10 +42,7 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
     }
 
     /**
-     * This method returns the Medical File of the patient who has the given id.
-     * 
-     * @param patientId
-     * @return a MedicalFileDTO
+     * {@inheritDoc}
      */
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -66,12 +63,44 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
         medicalFileDTO.setPatientId(patientId.toString());
         medicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
         medicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
-        medicalFileDTO.setAge((int)(medFileHashMap.get("age")));
+        medicalFileDTO.setAge((int) (medFileHashMap.get("age")));
 
         List<VisitDTO> visits = (List<VisitDTO>) medFileHashMap.get("visits");
         medicalFileDTO.setVisits(visits);
 
         return medicalFileDTO;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Override
+    public MedicalFileDTO updateMedicalFile(final MedicalFileDTO medicalFileDTO) {
+        final String getMedicalFileUri = "/medicalFiles/" + medicalFileDTO.getPatientId();
+        Mono<? extends EntityModel> medFileMono = webClientMedicalFile.put()
+                .uri(getMedicalFileUri)
+                .bodyValue(medicalFileDTO)
+                .accept(MediaTypes.HAL_JSON)
+                .retrieve()
+                .bodyToMono(EntityModel.of(Object.class).getClass());
+
+        LinkedHashMap<String, Object> medFileHashMap = (LinkedHashMap<String, Object>) medFileMono.block()
+                .getContent();
+        log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
+
+        MedicalFileDTO updatedMedicalFileDTO = new MedicalFileDTO();
+
+        updatedMedicalFileDTO.setPatientId(medicalFileDTO.getPatientId());
+        updatedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
+        updatedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
+        updatedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
+
+        List<VisitDTO> visits = (List<VisitDTO>) medFileHashMap.get("visits");
+        updatedMedicalFileDTO.setVisits(visits);
+
+        return medicalFileDTO;
+
     }
 
 }
