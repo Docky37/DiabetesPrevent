@@ -3,13 +3,21 @@ package com.mediscreen.history.manager.controller;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.VisitDTO;
+import com.mediscreen.history.manager.exceptions.ForbiddenException;
+import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
+import com.mediscreen.history.manager.exceptions.UnauthorizedException;
 import com.mediscreen.history.manager.service.IMedicalFileManagerService;
 
 import lombok.extern.log4j.Log4j2;
@@ -55,6 +63,58 @@ public class MedicalFileManagerController {
         MedicalFileDTO updatedMedicalFileDTO = medicalFileManagerService.updateMedicalFile(medicalFileDTO);
         log.info("Request result = {}", updatedMedicalFileDTO.toString());
         return updatedMedicalFileDTO;
+    }
+
+    /**
+     * HTTP POST request used to add a medical file of a new patient.
+     *
+     * @param medicalFileDTO
+     * @return a MedicalFileDTO (the added medical file)
+     * @throws Exception
+     */
+    @PostMapping("/medicalFiles")
+    public MedicalFileDTO addMedicalFile(@RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
+        log.info("\nNEW HTTP POST REQUEST on /medicalFiles with content = {}", medicalFileDTO.toString());
+        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(medicalFileDTO);
+        log.info("Request result = {}", addedMedicalFileDTO.toString());
+        return addedMedicalFileDTO;
+    }
+
+    /**
+     * HTTP POST request used to add a medical file of a new patient.
+     *
+     * @param medicalFileDTO
+     * @return a MedicalFileDTO (the added medical file)
+     * @throws Exception
+     */
+    @PostMapping("/medicalFiles/visits")
+    public MedicalFileDTO addMedicalFile(@RequestParam final UUID patientId,
+            @RequestBody final VisitDTO visitDTO) throws Exception {
+        log.info("\nNEW HTTP POST REQUEST on /medicalFiles with content = {}", visitDTO.toString());
+        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addNoteToMedicalFile(patientId, visitDTO);
+        //log.info("Request result = {}", addedMedicalFileDTO.toString());
+        return addedMedicalFileDTO;
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    private void unauthorizedHandler(
+            final UnauthorizedException e) {
+        log.info("END of Request with Status 401 Unauthorized");
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    private void forbiddenHandler(
+            final ForbiddenException e) {
+        log.info("END of Request with Status 403 Forbidden");
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    private void patientNotFoundHandler(
+            final MedicalFileNotFoundException e) {
+        log.info("END of Request with Status 404 NOT FOUND");
     }
 
 }
