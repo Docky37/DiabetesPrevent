@@ -20,6 +20,7 @@ import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
 import com.mediscreen.history.manager.exceptions.UnauthorizedException;
 import com.mediscreen.history.manager.service.IMedicalFileManagerService;
 
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
@@ -40,6 +41,10 @@ public class MedicalFileManagerController {
      * @return a MedicalFileDTO
      * @throws Exception
      */
+    @ApiOperation(value = "Return the medical file of the patient by his patientId.", notes = "This endpoint of"
+            + " PatientHistoryManager allows user to get medical file of a patient by his given patientId, in order"
+            + " to see his history (list of his medical visits, with the notes taken by the practitioner).",
+            response = MedicalFileDTO.class)
     @GetMapping("/medicalFiles")
     public MedicalFileDTO medicalFileById(@RequestParam final UUID patientId) throws Exception {
         log.info("NEW HTTP GET REQUEST on /medicalFiles");
@@ -56,6 +61,10 @@ public class MedicalFileManagerController {
      * @return a MedicalFileDTO (the updated medical file)
      * @throws Exception
      */
+    @ApiOperation(value = "Update the medical file of the patient corresponding to the given patientId.",
+            notes = "This endpoint of PatientHistoryManager allows user to update the medical file of the patient"
+                    + " that corresponding to the given patientId.",
+            response = MedicalFileDTO.class)
     @PutMapping("/medicalFiles")
     public MedicalFileDTO updateMedicalFile(@RequestParam final UUID patientId,
             @RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
@@ -72,6 +81,10 @@ public class MedicalFileManagerController {
      * @return a MedicalFileDTO (the added medical file)
      * @throws Exception
      */
+    @ApiOperation(value = "Add the medical file of a new patient.",
+            notes = "This endpoint of PatientHistoryManager allows user to create the medical file of a new patient"
+                    + " who does not yet have one.",
+            response = MedicalFileDTO.class)
     @PostMapping("/medicalFiles")
     public MedicalFileDTO addMedicalFile(@RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
         log.info("\nNEW HTTP POST REQUEST on /medicalFiles with content = {}", medicalFileDTO.toString());
@@ -87,6 +100,10 @@ public class MedicalFileManagerController {
      * @return a MedicalFileDTO (the added medical file)
      * @throws Exception
      */
+    @ApiOperation(value = "Add a new visit, with practitioner's notes to the medical file of a patient.",
+            notes = "This endpoint of PatientHistoryManager allows practitioner to add the notes of a medical visit"
+                    + " to the medical file of a patient",
+            response = MedicalFileDTO.class)
     @PostMapping("/medicalFiles/visits")
     public MedicalFileDTO addMedicalFile(@RequestParam final UUID patientId,
             @RequestBody final VisitDTO visitDTO) throws Exception {

@@ -48,7 +48,7 @@ public class PatientHistoryManagerApplication {
         return new Docket(DocumentationType.SWAGGER_2).select()
                 .paths(PathSelectors.regex("(?!/error.*).*"))
                 .apis(RequestHandlerSelectors
-                        .basePackage("com.mediscreen.patientmanager"))
+                        .basePackage("com.mediscreen.history.manager"))
                 .build().apiInfo(infoDetails());
     }
 
