@@ -69,7 +69,7 @@ public class MedicalFileManagerController {
     public MedicalFileDTO updateMedicalFile(@RequestParam final UUID patientId,
             @RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
         log.info("\nNEW HTTP PUT REQUEST on /medicalFiles with idPatient = {}", patientId.toString());
-        MedicalFileDTO updatedMedicalFileDTO = medicalFileManagerService.updateMedicalFile(medicalFileDTO);
+        MedicalFileDTO updatedMedicalFileDTO = medicalFileManagerService.updateMedicalFile(patientId, medicalFileDTO);
         log.info("Request result = {}", updatedMedicalFileDTO.toString());
         return updatedMedicalFileDTO;
     }
@@ -86,7 +86,8 @@ public class MedicalFileManagerController {
                     + " who does not yet have one.",
             response = MedicalFileDTO.class)
     @PostMapping("/medicalFiles")
-    public MedicalFileDTO addMedicalFile(@RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
+    @ResponseStatus(HttpStatus.CREATED)
+        public MedicalFileDTO addMedicalFile(@RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
         log.info("\nNEW HTTP POST REQUEST on /medicalFiles with content = {}", medicalFileDTO.toString());
         MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(medicalFileDTO);
         log.info("Request result = {}", addedMedicalFileDTO.toString());
@@ -94,9 +95,10 @@ public class MedicalFileManagerController {
     }
 
     /**
-     * HTTP POST request used to add a medical file of a new patient.
+     * HTTP POST request used to add a note to the medical file of a new patient.
      *
-     * @param medicalFileDTO
+     * @param patientId
+     * @param visitDTO
      * @return a MedicalFileDTO (the added medical file)
      * @throws Exception
      */
@@ -105,11 +107,12 @@ public class MedicalFileManagerController {
                     + " to the medical file of a patient",
             response = MedicalFileDTO.class)
     @PostMapping("/medicalFiles/visits")
+    @ResponseStatus(HttpStatus.OK)
     public MedicalFileDTO addMedicalFile(@RequestParam final UUID patientId,
             @RequestBody final VisitDTO visitDTO) throws Exception {
         log.info("\nNEW HTTP POST REQUEST on /medicalFiles with content = {}", visitDTO.toString());
         MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addNoteToMedicalFile(patientId, visitDTO);
-        //log.info("Request result = {}", addedMedicalFileDTO.toString());
+        log.info("Request result = {}", addedMedicalFileDTO.toString());
         return addedMedicalFileDTO;
     }
 

@@ -25,23 +25,30 @@ public interface IMedicalFileManagerService {
     /**
      * This method allows you to update an existing medicalFile.
      *
+     * @param patientId
      * @param medicalFileDTO
      * @return a MedicalFileDTO (the updated medical file)
+     * @throws UnauthorizedException
+     * @throws ForbiddenException
+     * @throws MedicalFileNotFoundException
      */
-    MedicalFileDTO updateMedicalFile(MedicalFileDTO medicalFileDTO);
+    MedicalFileDTO updateMedicalFile(UUID patientId, MedicalFileDTO medicalFileDTO)
+            throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException;
 
     /**
      * This method allows you to add a new medicalFile for a new patient.
      *
      * @param medicalFileDTO
      * @return a MedicalFileDTO (the added medical file)
+     * @throws ForbiddenException
+     * @throws UnauthorizedException
+     * @throws MedicalFileNotFoundException
      */
-    MedicalFileDTO addMedicalFile(MedicalFileDTO medicalFileDTO);
+    MedicalFileDTO addMedicalFile(MedicalFileDTO medicalFileDTO)
+            throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException;
 
     /**
      * This method allows you to add a new note to the medicalFile for a patient.
-     * 
-     * @param patientId
      *
      * @param patientId
      * @param visitDTO

@@ -32,26 +32,26 @@ public class MedicalFileManagerServiceTest {
                     .url("http://localhost:" + mockWebServerMedicalFile.getPort())
                     .toString()));
 
-    private static String jsonResult0 = "";
+    private static String jsonResult = "";
 
-    private static String jsonResult1 = "{ \"firstName\" : \"John\", \"lastName\" : \"Doe\", \"age\" : 52,"
-            + " \"visits\" : [ { \"visitDate\" : \"2019-12-15T10:12:00\", \"practitioner\" : \"Dr. Mickael JONES\","
-            + " \"notes\" : \"Patient states that they are feeling a great deal of stress at work.\\n"
-            + "Patient also complains that their hearing seems Abnormal as of late.\" },"
-            + " { \"visitDate\" : \"2020-02-25T15:15:00\", \"practitioner\" : \"Dr. Mickael JONES\", \"notes\" :"
-            + " \"Patient states that they have had a Reaction to medication within last 3 months.\\n"
-            + "Patient also complains that their hearing continues to be problematic\" } ],"
+    private static String jsonResult0 = "{ \"firstName\" : \"John\", \"lastName\" : \"DOE\", \"age\" : 52,"
             + " \"_links\" : { \"self\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" },"
             + " \"medicalFile\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" } } }";
 
-    private static String jsonResult3 = "{ \"firstName\" : \"John\", \"lastName\" : \"Doe\", \"age\" : 52,"
+    private static String jsonResult1 = "{ \"firstName\" : \"John\", \"lastName\" : \"DOE\", \"age\" : 52,"
             + " \"visits\" : [ { \"visitDate\" : \"2019-12-15T10:12:00\", \"practitioner\" : \"Dr. Mickael JONES\","
             + " \"notes\" : \"Patient states that they are feeling a great deal of stress at work.\\n"
             + "Patient also complains that their hearing seems Abnormal as of late.\" }],"
             + " \"_links\" : { \"self\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" },"
             + " \"medicalFile\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" } } }";
 
-    private static String jsonResult2 = "{ \"firstName\" : \"John\", \"lastName\" : \"Doe\", \"age\" : 52,"
+    private static String jsonResult2 = "{ \"firstName\" : \"John\", \"lastName\" : \"DOE\", \"age\" : 52,"
+            + " \"visits\" : [ { \"visitDate\" : \"2019-12-15T10:12:00\", \"practitioner\" : \"Dr. Mickael JONES\","
+            + " \"notes\" : \"Patient states that they are feeling a great deal of stress at work.\\n"
+            + "Patient also complains that their hearing seems Abnormal as of late.\" },"
+            + " { \"visitDate\" : \"2020-02-25T15:15:00\", \"practitioner\" : \"Dr. Mickael JONES\", \"notes\" :"
+            + " \"Patient states that they have had a Reaction to medication within last 3 months.\\n"
+            + "Patient also complains that their hearing continues to be problematic\" } ],"
             + " \"_links\" : { \"self\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" },"
             + " \"medicalFile\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" } } }";
 
@@ -70,13 +70,14 @@ public class MedicalFileManagerServiceTest {
                 new MockResponse()
                         .setResponseCode(200)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody(jsonResult1));
+                        .setBody(jsonResult2));
 
         // WHEN
         MedicalFileDTO medicalFileDTO = medicalFileManagerService.findMedicalFileById(id);
         // THEN
         assertThat(medicalFileDTO).isNotNull();
         assertThat(medicalFileDTO.getAge()).isEqualTo(52);
+        assertThat(medicalFileDTO.getVisits().size()).isEqualTo(2);
     }
 
     @Test
@@ -88,7 +89,7 @@ public class MedicalFileManagerServiceTest {
                 new MockResponse()
                         .setResponseCode(404)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody(jsonResult0));
+                        .setBody(jsonResult));
 
         // WHEN
         // THEN
@@ -107,6 +108,13 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setAge(52);
         medicalFileDTO.addVisit(visitDTO);
 
+        // Mock response to findMedicalFileById (Because service first checks that Medical file exists)
+        mockWebServerMedicalFile.enqueue(
+                new MockResponse()
+                        .setResponseCode(200)
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .setBody(jsonResult0));
+        // Mock response to the update
         mockWebServerMedicalFile.enqueue(
                 new MockResponse()
                         .setResponseCode(200)
@@ -114,7 +122,8 @@ public class MedicalFileManagerServiceTest {
                         .setBody(jsonResult1));
 
         // WHEN
-        MedicalFileDTO updatedMedicalFileDTO = medicalFileManagerService.updateMedicalFile(medicalFileDTO);
+        MedicalFileDTO updatedMedicalFileDTO = medicalFileManagerService
+                .updateMedicalFile(UUID.fromString(medicalFileDTO.getPatientId()), medicalFileDTO);
         // THEN
         assertThat(updatedMedicalFileDTO).isNotNull();
         assertThat(updatedMedicalFileDTO.getAge()).isEqualTo(52);
@@ -135,18 +144,19 @@ public class MedicalFileManagerServiceTest {
                 new MockResponse()
                         .setResponseCode(200)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody(jsonResult2));
+                        .setBody(jsonResult0));
 
         // WHEN
         MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(medicalFileDTO);
         // THEN
         assertThat(addedMedicalFileDTO).isNotNull();
+        assertThat(addedMedicalFileDTO.getFirstName()).isEqualTo("John");
+        assertThat(addedMedicalFileDTO.getLastName()).isEqualTo("DOE");
         assertThat(addedMedicalFileDTO.getAge()).isEqualTo(52);
-        assertThat(addedMedicalFileDTO.getVisits().size()).isEqualTo(0);
     }
 
     @Test
-    @DisplayName("Given a new patient, when call addNotesToMedicalFile, then returns his new medical file.")
+    @DisplayName("Given a patient, when call addNotesToMedicalFile, then returns his updated medical file.")
     public void givenAPatient_whenAddNoteToMedicalFile_thenReturnsUpdatedMedicalFile() throws Exception {
         // GIVEN
         VisitDTO visitDTO = new VisitDTO(LocalDateTime.now(), "Doctor Mickael JONES", "My notes about your health.");
@@ -157,17 +167,18 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setAge(52);
         medicalFileDTO.addVisit(visitDTO);
 
-        mockWebServerMedicalFile.enqueue(
-                new MockResponse()
-                        .setResponseCode(200)
-                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody(jsonResult3));
-
+        // Mock response to findMedicalFileById (Because service first checks that Medical file exists)
         mockWebServerMedicalFile.enqueue(
                 new MockResponse()
                         .setResponseCode(200)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(jsonResult1));
+        // Mock response to the update
+        mockWebServerMedicalFile.enqueue(
+                new MockResponse()
+                        .setResponseCode(200)
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .setBody(jsonResult2));
 
         // WHEN
         MedicalFileDTO updatedMedicalFileDTO = medicalFileManagerService

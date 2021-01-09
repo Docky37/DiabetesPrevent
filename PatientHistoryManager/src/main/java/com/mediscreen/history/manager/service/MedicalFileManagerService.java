@@ -85,12 +85,31 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
 
     /**
      * {@inheritDoc}
+     *
+     * @throws MedicalFileNotFoundException
+     */
+    @Override
+    public MedicalFileDTO updateMedicalFile(final UUID patientId, final MedicalFileDTO medicalFileDTO)
+            throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException {
+
+        findMedicalFileById(patientId);
+
+        MedicalFileDTO updatedMedicalFileDTO = updateSubMethod(patientId, medicalFileDTO);
+
+        return updatedMedicalFileDTO;
+
+    }
+
+    /**
+     * Sub method use to make the medical file update. Used by updateMedicalFile and addNoteToMedicalFile methods.
+     *
+     * @param patientId
+     * @param medicalFileDTO
+     * @return a MedicalFileDTO
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    @Override
-    public MedicalFileDTO updateMedicalFile(final MedicalFileDTO medicalFileDTO) {
-        String id = medicalFileDTO.getPatientId();
-        final String getMedicalFileUri = "/medicalFiles/" + id;
+    private MedicalFileDTO updateSubMethod(final UUID patientId, final MedicalFileDTO medicalFileDTO) {
+        final String getMedicalFileUri = "/medicalFiles/" + patientId;
         Mono<? extends EntityModel> medFileMono = webClientMedicalFile.put()
                 .uri(getMedicalFileUri)
                 .bodyValue(medicalFileDTO)
@@ -104,42 +123,53 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
 
         MedicalFileDTO updatedMedicalFileDTO = new MedicalFileDTO();
 
-        updatedMedicalFileDTO.setPatientId(id);
+        updatedMedicalFileDTO.setPatientId(patientId.toString());
         updatedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
         updatedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
         updatedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
 
         List<VisitDTO> visits = (List<VisitDTO>) medFileHashMap.get("visits");
         updatedMedicalFileDTO.setVisits(visits);
-
         return updatedMedicalFileDTO;
-
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @throws MedicalFileNotFoundException
+     * @throws ForbiddenException
+     * @throws UnauthorizedException
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    public MedicalFileDTO addMedicalFile(final MedicalFileDTO medicalFileDTO) {
-        final String getMedicalFileUri = "/medicalFiles/";
-        Mono<? extends EntityModel> medFileMono = webClientMedicalFile.post()
-                .uri(getMedicalFileUri)
-                .bodyValue(medicalFileDTO)
-                .accept(MediaTypes.HAL_JSON)
-                .retrieve()
-                .bodyToMono(EntityModel.of(Object.class).getClass());
+    public MedicalFileDTO addMedicalFile(final MedicalFileDTO medicalFileDTO)
+            throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException {
 
-        LinkedHashMap<String, Object> medFileHashMap = (LinkedHashMap<String, Object>) medFileMono.block()
-                .getContent();
-        log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
+        MedicalFileDTO addedMedicalFileDTO = findMedicalFileById(UUID.fromString(medicalFileDTO.getPatientId()));
 
-        MedicalFileDTO addedMedicalFileDTO = new MedicalFileDTO();
+        if (addedMedicalFileDTO == null) {
+            final String getMedicalFileUri = "/medicalFiles/";
+            Mono<? extends EntityModel> medFileMono = webClientMedicalFile.post()
+                    .uri(getMedicalFileUri)
+                    .bodyValue(medicalFileDTO)
+                    .accept(MediaTypes.HAL_JSON)
+                    .retrieve()
+                    .onStatus(httpStatus -> HttpStatus.UNAUTHORIZED.equals(httpStatus),
+                            response -> Mono.just(new UnauthorizedException("401 Unauthorized")))
+                    .onStatus(httpStatus -> HttpStatus.FORBIDDEN.equals(httpStatus),
+                            response -> Mono.just(new MedicalFileNotFoundException("403 Forbidden")))
+                    .bodyToMono(EntityModel.of(Object.class).getClass());
 
-        addedMedicalFileDTO.setPatientId(medicalFileDTO.getPatientId());
-        addedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
-        addedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
-        addedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
+            LinkedHashMap<String, Object> medFileHashMap = (LinkedHashMap<String, Object>) medFileMono.block()
+                    .getContent();
+            log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
+
+            addedMedicalFileDTO = new MedicalFileDTO();
+            addedMedicalFileDTO.setPatientId(medicalFileDTO.getPatientId());
+            addedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
+            addedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
+            addedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
+        }
 
         return addedMedicalFileDTO;
 
@@ -147,7 +177,7 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @throws MedicalFileNotFoundException
      * @throws ForbiddenException
      * @throws UnauthorizedException
@@ -155,11 +185,12 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
     @Override
     public MedicalFileDTO addNoteToMedicalFile(final UUID patientId, final VisitDTO visitDTO)
             throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException {
+
         MedicalFileDTO medicalFileDTO = findMedicalFileById(patientId);
 
         medicalFileDTO.getVisits().add(visitDTO);
 
-        return updateMedicalFile(medicalFileDTO);
+        return updateSubMethod(patientId, medicalFileDTO);
     }
 
 }

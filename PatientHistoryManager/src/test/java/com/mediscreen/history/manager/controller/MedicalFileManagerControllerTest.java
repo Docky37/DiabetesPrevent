@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
+import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
 import com.mediscreen.history.manager.service.IMedicalFileManagerService;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -64,6 +65,21 @@ public class MedicalFileManagerControllerTest {
     }
 
     @Test
+    public void givenAUnknownPatientId_whenRequestMedicalFileById_thenThrows404() throws Exception {
+        // GIVEN
+        UUID patientId = UUID.fromString("390ef9a0-9f50-4d63-9740-c7a235115170");
+        given(medicalFileManagerService.findMedicalFileById(any(UUID.class)))
+                .willThrow(MedicalFileNotFoundException.class);
+        // WHEN
+        mvc.perform(MockMvcRequestBuilders.get("/medicalFiles?patientId=" + patientId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+        // THEN
+        verify(medicalFileManagerService).findMedicalFileById(any(UUID.class));
+    }
+
+    @Test
     public void givenAMedicalFile_whenRequestUpdateMedicalFile_thenCallServiceMethod() throws Exception {
         // GIVEN
         UUID patientId = UUID.fromString("390ef9a0-9f50-4d63-9740-c7a235115170");
@@ -75,7 +91,8 @@ public class MedicalFileManagerControllerTest {
         medicalFileDTO.setLastName("DOE");
         medicalFileDTO.setAge(52);
         medicalFileDTO.addVisit(visitDTO);
-        given(medicalFileManagerService.updateMedicalFile(any(MedicalFileDTO.class))).willReturn(medicalFileDTO);
+        given(medicalFileManagerService.updateMedicalFile(any(UUID.class), any(MedicalFileDTO.class)))
+                .willReturn(medicalFileDTO);
 
         // WHEN
         ObjectMapper mapper = new ObjectMapper();
@@ -87,7 +104,7 @@ public class MedicalFileManagerControllerTest {
                 .andReturn();
 
         // THEN
-        verify(medicalFileManagerService).updateMedicalFile(any(MedicalFileDTO.class));
+        verify(medicalFileManagerService).updateMedicalFile(any(UUID.class), any(MedicalFileDTO.class));
     }
 
     @Test
@@ -114,7 +131,7 @@ public class MedicalFileManagerControllerTest {
     }
 
     @Test
-    public void givenAPatient_whenRequestAddNoteToMedicalFile_thenCallServiceMethods() throws Exception {
+    public void givenAPatient_whenRequestAddNoteToMedicalFile_thenCallServiceMethod() throws Exception {
         UUID patientId = UUID.fromString("390ef9a0-9f50-4d63-9740-c7a235115170");
         VisitDTO visitDTO = new VisitDTO(LocalDateTime.parse("2021-01-02T15:30"), "Doctor Mickael JONES",
                 "My notes about your health.");
@@ -124,9 +141,7 @@ public class MedicalFileManagerControllerTest {
         medicalFileDTO.setLastName("DOE");
         medicalFileDTO.setAge(52);
         medicalFileDTO.addVisit(visitDTO);
-        given(medicalFileManagerService.findMedicalFileById(any(UUID.class))).willReturn(new MedicalFileDTO());
-        given(medicalFileManagerService.updateMedicalFile(any(MedicalFileDTO.class))).willReturn(medicalFileDTO);
-        given(medicalFileManagerService.addNoteToMedicalFile(patientId, visitDTO))
+        given(medicalFileManagerService.addNoteToMedicalFile(any(UUID.class), any(VisitDTO.class)))
                 .willReturn(medicalFileDTO);
 
         // WHEN
@@ -139,8 +154,6 @@ public class MedicalFileManagerControllerTest {
                 .andReturn();
 
         // THEN
-        verify(medicalFileManagerService).addNoteToMedicalFile(patientId, visitDTO);
-        verify(medicalFileManagerService).findMedicalFileById(any(UUID.class));
-        verify(medicalFileManagerService).updateMedicalFile(any(MedicalFileDTO.class));
+        verify(medicalFileManagerService).addNoteToMedicalFile(any(UUID.class), any(VisitDTO.class));
     }
 }
