@@ -2,6 +2,7 @@ package com.mediscreen.history.manager.service;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,13 +62,15 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
                 .onStatus(httpStatus -> HttpStatus.UNAUTHORIZED.equals(httpStatus),
                         response -> Mono.just(new UnauthorizedException("401 Unauthorized")))
                 .onStatus(httpStatus -> HttpStatus.FORBIDDEN.equals(httpStatus),
-                        response -> Mono.just(new MedicalFileNotFoundException("403 Forbidden")))
+                        response -> Mono.just(new ForbiddenException("403 Forbidden")))
                 .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus),
                         response -> Mono.just(new MedicalFileNotFoundException("404 Not found")))
                 .bodyToMono(EntityModel.of(Object.class).getClass());
 
-        LinkedHashMap<String, Object> medFileHashMap = (LinkedHashMap<String, Object>) medFileMono.block()
-                .getContent();
+        Object requestResult = Optional.ofNullable((EntityModel) medFileMono.block()).orElseThrow();
+        LinkedHashMap<String, Object> medFileHashMap = Optional
+                .ofNullable((LinkedHashMap<String, Object>) ((EntityModel) requestResult).getContent())
+                .orElseThrow();
         log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
 
         MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
@@ -117,8 +120,10 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
                 .retrieve()
                 .bodyToMono(EntityModel.of(Object.class).getClass());
 
-        LinkedHashMap<String, Object> medFileHashMap = (LinkedHashMap<String, Object>) medFileMono.block()
-                .getContent();
+        Object requestResult = Optional.ofNullable((EntityModel) medFileMono.block()).orElseThrow();
+        LinkedHashMap<String, Object> medFileHashMap = Optional
+                .ofNullable((LinkedHashMap<String, Object>) ((EntityModel) requestResult).getContent())
+                .orElseThrow();
         log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
 
         MedicalFileDTO updatedMedicalFileDTO = new MedicalFileDTO();
@@ -143,32 +148,38 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public MedicalFileDTO addMedicalFile(final MedicalFileDTO medicalFileDTO)
-            throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException {
+            throws UnauthorizedException, ForbiddenException {
 
-        MedicalFileDTO addedMedicalFileDTO = findMedicalFileById(UUID.fromString(medicalFileDTO.getPatientId()));
+        MedicalFileDTO addedMedicalFileDTO = null;
+        try {
+            addedMedicalFileDTO = findMedicalFileById(UUID.fromString(medicalFileDTO.getPatientId()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (addedMedicalFileDTO == null) {
+                final String getMedicalFileUri = "/medicalFiles/";
+                Mono<? extends EntityModel> medFileMono = webClientMedicalFile.post()
+                        .uri(getMedicalFileUri)
+                        .bodyValue(medicalFileDTO)
+                        .accept(MediaTypes.HAL_JSON)
+                        .retrieve()
+                        .onStatus(httpStatus -> HttpStatus.UNAUTHORIZED.equals(httpStatus),
+                                response -> Mono.just(new UnauthorizedException("401 Unauthorized")))
+                        .onStatus(httpStatus -> HttpStatus.FORBIDDEN.equals(httpStatus),
+                                response -> Mono.just(new MedicalFileNotFoundException("403 Forbidden")))
+                        .bodyToMono(EntityModel.of(Object.class).getClass());
 
-        if (addedMedicalFileDTO == null) {
-            final String getMedicalFileUri = "/medicalFiles/";
-            Mono<? extends EntityModel> medFileMono = webClientMedicalFile.post()
-                    .uri(getMedicalFileUri)
-                    .bodyValue(medicalFileDTO)
-                    .accept(MediaTypes.HAL_JSON)
-                    .retrieve()
-                    .onStatus(httpStatus -> HttpStatus.UNAUTHORIZED.equals(httpStatus),
-                            response -> Mono.just(new UnauthorizedException("401 Unauthorized")))
-                    .onStatus(httpStatus -> HttpStatus.FORBIDDEN.equals(httpStatus),
-                            response -> Mono.just(new MedicalFileNotFoundException("403 Forbidden")))
-                    .bodyToMono(EntityModel.of(Object.class).getClass());
+                Object requestResult = Optional.ofNullable((EntityModel) medFileMono.block()).orElseThrow();
+                LinkedHashMap<String, Object> medFileHashMap = Optional
+                        .ofNullable((LinkedHashMap<String, Object>) ((EntityModel) requestResult).getContent())
+                        .orElseThrow();
+                log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
 
-            LinkedHashMap<String, Object> medFileHashMap = (LinkedHashMap<String, Object>) medFileMono.block()
-                    .getContent();
-            log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
-
-            addedMedicalFileDTO = new MedicalFileDTO();
-            addedMedicalFileDTO.setPatientId(medicalFileDTO.getPatientId());
-            addedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
-            addedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
-            addedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
+                addedMedicalFileDTO = new MedicalFileDTO();
+                addedMedicalFileDTO.setPatientId(medicalFileDTO.getPatientId());
+                addedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
+                addedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
+                addedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
+            }
         }
 
         return addedMedicalFileDTO;

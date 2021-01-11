@@ -81,8 +81,8 @@ public class MedicalFileManagerServiceTest {
     }
 
     @Test
-    @DisplayName("Given a patient without MedicalFile, when call findMedicalFileById, then returns message.")
-    public void givenARegistredPatient_whenFindMedicalFindById_thenReturnsMessage() throws Exception {
+    @DisplayName("Givena WebClient error, when call findMedicalFileById, then error is thrown.")
+    public void givenAWebClientError__whenFindMedicalFindById_thenErrorIsThrown() throws Exception {
         // GIVEN
         UUID id = UUID.randomUUID();
         mockWebServerMedicalFile.enqueue(
@@ -131,8 +131,64 @@ public class MedicalFileManagerServiceTest {
     }
 
     @Test
+    @DisplayName("Given a WebClientError, when call updateMedicalFile, then error is thrown.")
+    public void givenAWebClientError_whenUpdateMedicalFile_thenErrorIsThrown() throws Exception {
+        // GIVEN
+        VisitDTO visitDTO = new VisitDTO(LocalDateTime.now(), "Doctor Mickael JONES", "MY notes about your health.");
+        MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
+        medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
+        medicalFileDTO.setFirstName("John");
+        medicalFileDTO.setLastName("DOE");
+        medicalFileDTO.setAge(52);
+        medicalFileDTO.addVisit(visitDTO);
+
+        // Mock response to findMedicalFileById (Because service first checks that Medical file exists)
+        mockWebServerMedicalFile.enqueue(
+                new MockResponse()
+                        .setResponseCode(404)
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .setBody(jsonResult0));
+
+        // WHEN
+        // THEN
+        assertThrows(Exception.class, () -> medicalFileManagerService
+                .updateMedicalFile(UUID.fromString(medicalFileDTO.getPatientId()), medicalFileDTO));
+    }
+
+    @Test
     @DisplayName("Given a new patient, when call addMedicalFile, then returns his new medical file.")
     public void givenANewPatient_whenAddMedicalFile_thenReturnsHisNewMedicalFile() throws Exception {
+        // GIVEN
+        MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
+        medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
+        medicalFileDTO.setFirstName("John");
+        medicalFileDTO.setLastName("DOE");
+        medicalFileDTO.setAge(52);
+
+        mockWebServerMedicalFile.enqueue(
+                new MockResponse()
+                        .setResponseCode(404)
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .setBody(jsonResult));
+
+        mockWebServerMedicalFile.enqueue(
+                new MockResponse()
+                        .setResponseCode(201)
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .setBody(jsonResult0));
+
+        // WHEN
+        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(medicalFileDTO);
+        // THEN
+        assertThat(addedMedicalFileDTO).isNotNull();
+        assertThat(addedMedicalFileDTO.getFirstName()).isEqualTo("John");
+        assertThat(addedMedicalFileDTO.getLastName()).isEqualTo("DOE");
+        assertThat(addedMedicalFileDTO.getAge()).isEqualTo(52);
+    }
+
+    @Test
+    @DisplayName("Given MedicalFile alreadyexist, when call addMedicalFile, then returns existing medical file.")
+    public void givenAlreadyExistingMedicalFile_whenAddMedicalFile_thenReturnsExistingMedicalFile() throws Exception {
         // GIVEN
         MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
@@ -187,6 +243,31 @@ public class MedicalFileManagerServiceTest {
         assertThat(updatedMedicalFileDTO).isNotNull();
         assertThat(updatedMedicalFileDTO.getAge()).isEqualTo(52);
         assertThat(updatedMedicalFileDTO.getVisits().size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Given an unknown patientId, when call addNotesToMedicalFile, then error is thrown.")
+    public void givenAnUnknownPatientId_whenAddNoteToMedicalFile_thenErrorIsThrown() throws Exception {
+        // GIVEN
+        VisitDTO visitDTO = new VisitDTO(LocalDateTime.now(), "Doctor Mickael JONES", "My notes about your health.");
+        MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
+        medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
+        medicalFileDTO.setFirstName("John");
+        medicalFileDTO.setLastName("DOE");
+        medicalFileDTO.setAge(52);
+        medicalFileDTO.addVisit(visitDTO);
+
+        // Mock response to findMedicalFileById (Because service first checks that Medical file exists)
+        mockWebServerMedicalFile.enqueue(
+                new MockResponse()
+                        .setResponseCode(404)
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .setBody(jsonResult));
+
+        // WHEN
+        // THEN
+        assertThrows(Exception.class, () -> medicalFileManagerService
+                .addNoteToMedicalFile(UUID.fromString(medicalFileDTO.getPatientId()), visitDTO));
     }
 
 }

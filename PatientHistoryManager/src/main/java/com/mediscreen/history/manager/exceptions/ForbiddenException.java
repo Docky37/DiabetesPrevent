@@ -19,4 +19,13 @@ public class ForbiddenException extends Exception {
 
     }
 
+    /**
+     * Class constructor.
+     *
+     * @param message
+     */
+    public ForbiddenException(final String message) {
+        super(message);
+    }
+
 }
