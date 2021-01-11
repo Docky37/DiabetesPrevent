@@ -1,4 +1,4 @@
-package com.mediscreen.patientmanager.exception;
+package com.mediscreen.patientmanager.exceptions;
 
 /**
  * Exception that occurs when authorized user try to use a resource that is forbidden for him.
@@ -16,7 +16,15 @@ public class ForbiddenException extends Exception {
      * No args empty class constructor.
      */
     public ForbiddenException() {
+    }
 
+    /**
+     * Class constructor.
+     *
+     * @param message
+     */
+    public ForbiddenException(final String message) {
+        super(message);
     }
 
 }

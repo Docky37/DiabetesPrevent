@@ -1,4 +1,4 @@
-package com.mediscreen.patientmanager.exception;
+package com.mediscreen.patientmanager.exceptions;
 
 /**
  * Exception that occurs when PatientManager does not accept user connection.

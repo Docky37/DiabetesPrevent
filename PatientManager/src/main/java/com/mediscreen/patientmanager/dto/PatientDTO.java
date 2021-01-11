@@ -11,10 +11,12 @@ import com.mediscreen.patientmanager.enums.Gender;
 import com.mediscreen.patientmanager.utils.AgeCalculation;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode
 public class PatientDTO {
 
     /**

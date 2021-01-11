@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mediscreen.patientmanager.enums.Gender;
 import com.mediscreen.patientmanager.utils.AgeCalculation;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public final class PatientDetailsDTO extends PatientDTO {
 
     /**

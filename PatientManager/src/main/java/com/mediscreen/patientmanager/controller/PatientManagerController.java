@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mediscreen.patientmanager.dto.PatientDTO;
 import com.mediscreen.patientmanager.dto.PatientDetailsDTO;
-import com.mediscreen.patientmanager.exception.ForbiddenException;
-import com.mediscreen.patientmanager.exception.PatientNotFoundException;
-import com.mediscreen.patientmanager.exception.UnauthorizedException;
+import com.mediscreen.patientmanager.exceptions.ForbiddenException;
+import com.mediscreen.patientmanager.exceptions.PatientNotFoundException;
+import com.mediscreen.patientmanager.exceptions.UnauthorizedException;
 import com.mediscreen.patientmanager.service.IPatientManagerService;
 
 import io.swagger.annotations.ApiOperation;
