@@ -1,11 +1,14 @@
 package com.mediscreen.history.model;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import com.mediscreen.history.enums.Gender;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,9 +50,20 @@ public class MedicalFile {
     private String lastName;
 
     /**
+     * Last name of the patient.
+     */
+    @Field(value = "birth_date")
+    private LocalDate birthDate;
+
+    /**
      * Current age of the patient.
      */
     private int age;
+
+    /**
+     * The gender of this patient. Available values are 'M' for Male or 'F' for Female.
+     */
+    private Gender gender;
 
     /**
      * List of the patient medical visits.

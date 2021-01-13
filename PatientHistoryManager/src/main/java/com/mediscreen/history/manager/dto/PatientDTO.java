@@ -8,13 +8,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mediscreen.history.manager.enums.Gender;
 import com.mediscreen.history.manager.utils.AgeCalculation;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
-@EqualsAndHashCode
 public class PatientDTO {
 
     /**

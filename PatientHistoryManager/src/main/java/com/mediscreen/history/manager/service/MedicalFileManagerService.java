@@ -1,5 +1,6 @@
 package com.mediscreen.history.manager.service;
 
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +17,10 @@ import com.mediscreen.history.manager.dto.MedicalFileDTO;
 import com.mediscreen.history.manager.dto.PatientDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
 import com.mediscreen.history.manager.exceptions.ForbiddenException;
+import com.mediscreen.history.manager.exceptions.ConflictException;
 import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
 import com.mediscreen.history.manager.exceptions.UnauthorizedException;
+import com.mediscreen.history.manager.utils.AgeCalculation;
 
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Mono;
@@ -79,8 +82,8 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
         medicalFileDTO.setPatientId(patientId.toString());
         medicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
         medicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
-        medicalFileDTO.setAge((int) (medFileHashMap.get("age")));
-
+        medicalFileDTO.setBirthDate(LocalDate.parse((String) (medFileHashMap.get("birthDate"))));
+        medicalFileDTO.setAge(AgeCalculation.calculateAge(medicalFileDTO.getBirthDate()));
         List<VisitDTO> visits = (List<VisitDTO>) medFileHashMap.get("visits");
         medicalFileDTO.setVisits(visits);
 
@@ -132,8 +135,9 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
         updatedMedicalFileDTO.setPatientId(patientId.toString());
         updatedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
         updatedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
+        updatedMedicalFileDTO.setBirthDate(LocalDate.parse((String) (medFileHashMap.get("birthDate"))));
         updatedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
-
+        updatedMedicalFileDTO.setGender((String) medFileHashMap.get("gender"));
         List<VisitDTO> visits = (List<VisitDTO>) medFileHashMap.get("visits");
         updatedMedicalFileDTO.setVisits(visits);
         return updatedMedicalFileDTO;
@@ -141,16 +145,11 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
 
     /**
      * {@inheritDoc}
-     *
-     * @throws MedicalFileNotFoundException
-     * @throws ForbiddenException
-     * @throws UnauthorizedException
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public MedicalFileDTO addMedicalFile(final PatientDTO patientDTO)
-            throws UnauthorizedException, ForbiddenException {
-
+            throws UnauthorizedException, ForbiddenException, ConflictException {
         MedicalFileDTO addedMedicalFileDTO = null;
         try {
             addedMedicalFileDTO = findMedicalFileById(patientDTO.getPatientId());
@@ -168,6 +167,8 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
                                 response -> Mono.just(new UnauthorizedException("401 Unauthorized")))
                         .onStatus(httpStatus -> HttpStatus.FORBIDDEN.equals(httpStatus),
                                 response -> Mono.just(new MedicalFileNotFoundException("403 Forbidden")))
+                        .onStatus(httpStatus -> HttpStatus.CONFLICT.equals(httpStatus),
+                                response -> Mono.just(new ConflictException("409 Conflict")))
                         .bodyToMono(EntityModel.of(Object.class).getClass());
 
                 Object requestResult = Optional.ofNullable((EntityModel) medFileMono.block()).orElseThrow();
@@ -180,6 +181,8 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
                 addedMedicalFileDTO.setPatientId(patientDTO.getPatientId().toString());
                 addedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
                 addedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
+                addedMedicalFileDTO.setBirthDate(LocalDate.parse((String) (medFileHashMap.get("birthDate"))));
+                addedMedicalFileDTO.setGender((String) medFileHashMap.get("gender"));
                 addedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));
             }
         }

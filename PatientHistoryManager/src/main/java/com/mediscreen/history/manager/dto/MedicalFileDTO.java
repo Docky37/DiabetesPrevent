@@ -1,5 +1,6 @@
 package com.mediscreen.history.manager.dto;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +43,16 @@ public class MedicalFileDTO {
      * Current age of the patient.
      */
     private int age;
+
+    /**
+     * Birth date of the patient.
+     */
+    private LocalDate birthDate;
+
+    /**
+     * Gender of the patient.
+     */
+    private String gender;
 
     /**
      * List of the patient medical visits.

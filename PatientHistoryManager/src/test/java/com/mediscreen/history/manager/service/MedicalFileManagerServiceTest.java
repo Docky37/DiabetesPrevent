@@ -38,10 +38,12 @@ public class MedicalFileManagerServiceTest {
     private static String jsonResult = "";
 
     private static String jsonResult0 = "{ \"firstName\" : \"John\", \"lastName\" : \"DOE\", \"age\" : 52,"
+            + " \"birthDate\": \"1975-07-23\", \"gender\": \"F\","
             + " \"_links\" : { \"self\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" },"
             + " \"medicalFile\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" } } }";
 
     private static String jsonResult1 = "{ \"firstName\" : \"John\", \"lastName\" : \"DOE\", \"age\" : 52,"
+            + " \"birthDate\": \"1975-07-23\", \"gender\": \"F\","
             + " \"visits\" : [ { \"visitDate\" : \"2019-12-15T10:12:00\", \"practitioner\" : \"Dr. Mickael JONES\","
             + " \"notes\" : \"Patient states that they are feeling a great deal of stress at work.\\n"
             + "Patient also complains that their hearing seems Abnormal as of late.\" }],"
@@ -49,6 +51,7 @@ public class MedicalFileManagerServiceTest {
             + " \"medicalFile\" : { \"href\" : \"http://127.0.0.1:8080/medicalFiles/390ef9a0-9f50-4d63-9740-c7a235115170\" } } }";
 
     private static String jsonResult2 = "{ \"firstName\" : \"John\", \"lastName\" : \"DOE\", \"age\" : 52,"
+            + " \"birthDate\": \"1975-07-23\", \"gender\": \"F\","
             + " \"visits\" : [ { \"visitDate\" : \"2019-12-15T10:12:00\", \"practitioner\" : \"Dr. Mickael JONES\","
             + " \"notes\" : \"Patient states that they are feeling a great deal of stress at work.\\n"
             + "Patient also complains that their hearing seems Abnormal as of late.\" },"
@@ -79,7 +82,7 @@ public class MedicalFileManagerServiceTest {
         MedicalFileDTO medicalFileDTO = medicalFileManagerService.findMedicalFileById(id);
         // THEN
         assertThat(medicalFileDTO).isNotNull();
-        assertThat(medicalFileDTO.getAge()).isEqualTo(52);
+        assertThat(medicalFileDTO.getAge()).isEqualTo(45);
         assertThat(medicalFileDTO.getVisits().size()).isEqualTo(2);
     }
 
@@ -108,7 +111,9 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
         medicalFileDTO.setLastName("DOE");
-        medicalFileDTO.setAge(52);
+        medicalFileDTO.setBirthDate(LocalDate.of(1975, 9, 16));
+        medicalFileDTO.setGender("M");
+        medicalFileDTO.setAge(45);
         medicalFileDTO.addVisit(visitDTO);
 
         // Mock response to findMedicalFileById (Because service first checks that Medical file exists)
@@ -142,7 +147,9 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
         medicalFileDTO.setLastName("DOE");
-        medicalFileDTO.setAge(52);
+        medicalFileDTO.setBirthDate(LocalDate.of(1975, 9, 16));
+        medicalFileDTO.setGender("M");
+        medicalFileDTO.setAge(45);
         medicalFileDTO.addVisit(visitDTO);
 
         // Mock response to findMedicalFileById (Because service first checks that Medical file exists)
@@ -168,7 +175,9 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
         medicalFileDTO.setLastName("DOE");
-        medicalFileDTO.setAge(52);
+        medicalFileDTO.setBirthDate(LocalDate.of(1975, 9, 16));
+        medicalFileDTO.setGender("M");
+        medicalFileDTO.setAge(45);
 
         mockWebServerMedicalFile.enqueue(
                 new MockResponse()
@@ -192,8 +201,8 @@ public class MedicalFileManagerServiceTest {
     }
 
     @Test
-    @DisplayName("Given MedicalFile alreadyexist, when call addMedicalFile, then returns existing medical file.")
-    public void givenAlreadyExistingMedicalFile_whenAddMedicalFile_thenReturnsExistingMedicalFile() throws Exception {
+    @DisplayName("Given MedicalFile in conflict, when call addMedicalFile, then returns 409 conflict.")
+    public void givenMedicalFileConflict_whenAddMedicalFile_thenReturns409Conflict() throws Exception {
         // GIVEN
         PatientDTO patientDTO = new PatientDTO(UUID.fromString("390ef9a0-9f50-4d63-9740-c7a235115170"), "John", "DOE",
                 LocalDate.of(1968, 9, 16), Gender.M);
@@ -201,7 +210,9 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
         medicalFileDTO.setLastName("DOE");
-        medicalFileDTO.setAge(52);
+        medicalFileDTO.setBirthDate(LocalDate.of(1975, 9, 16));
+        medicalFileDTO.setGender("M");
+        medicalFileDTO.setAge(45);
 
         mockWebServerMedicalFile.enqueue(
                 new MockResponse()
@@ -215,7 +226,7 @@ public class MedicalFileManagerServiceTest {
         assertThat(addedMedicalFileDTO).isNotNull();
         assertThat(addedMedicalFileDTO.getFirstName()).isEqualTo("John");
         assertThat(addedMedicalFileDTO.getLastName()).isEqualTo("DOE");
-        assertThat(addedMedicalFileDTO.getAge()).isEqualTo(52);
+        assertThat(addedMedicalFileDTO.getAge()).isEqualTo(45);
     }
 
     @Test
@@ -227,7 +238,9 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
         medicalFileDTO.setLastName("DOE");
-        medicalFileDTO.setAge(52);
+        medicalFileDTO.setBirthDate(LocalDate.of(1975, 9, 16));
+        medicalFileDTO.setGender("M");
+        medicalFileDTO.setAge(45);
         medicalFileDTO.addVisit(visitDTO);
 
         // Mock response to findMedicalFileById (Because service first checks that Medical file exists)
@@ -261,7 +274,9 @@ public class MedicalFileManagerServiceTest {
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
         medicalFileDTO.setLastName("DOE");
-        medicalFileDTO.setAge(52);
+        medicalFileDTO.setBirthDate(LocalDate.of(1975, 9, 16));
+        medicalFileDTO.setGender("M");
+        medicalFileDTO.setAge(45);
         medicalFileDTO.addVisit(visitDTO);
 
         // Mock response to findMedicalFileById (Because service first checks that Medical file exists)

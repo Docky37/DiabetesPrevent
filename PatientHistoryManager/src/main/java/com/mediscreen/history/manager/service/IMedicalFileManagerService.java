@@ -6,6 +6,7 @@ import com.mediscreen.history.manager.dto.MedicalFileDTO;
 import com.mediscreen.history.manager.dto.PatientDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
 import com.mediscreen.history.manager.exceptions.ForbiddenException;
+import com.mediscreen.history.manager.exceptions.ConflictException;
 import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
 import com.mediscreen.history.manager.exceptions.UnauthorizedException;
 
@@ -44,9 +45,11 @@ public interface IMedicalFileManagerService {
      * @throws ForbiddenException
      * @throws UnauthorizedException
      * @throws MedicalFileNotFoundException
+     * @throws ConflictException
      */
     MedicalFileDTO addMedicalFile(PatientDTO patientDTO)
-            throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException;
+            throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException,
+            ConflictException;
 
     /**
      * This method allows you to add a new note to the medicalFile for a patient.
