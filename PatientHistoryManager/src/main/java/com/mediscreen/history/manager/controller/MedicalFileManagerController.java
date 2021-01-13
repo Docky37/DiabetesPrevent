@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.PatientDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
 import com.mediscreen.history.manager.exceptions.ForbiddenException;
 import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
@@ -77,7 +78,7 @@ public class MedicalFileManagerController {
     /**
      * HTTP POST request used to add a medical file of a new patient.
      *
-     * @param medicalFileDTO
+     * @param patientDTO
      * @return a MedicalFileDTO (the added medical file)
      * @throws Exception
      */
@@ -87,9 +88,9 @@ public class MedicalFileManagerController {
             response = MedicalFileDTO.class)
     @PostMapping("/medicalFiles")
     @ResponseStatus(HttpStatus.CREATED)
-        public MedicalFileDTO addMedicalFile(@RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
-        log.info("\nNEW HTTP POST REQUEST on /medicalFiles with content = {}", medicalFileDTO.toString());
-        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(medicalFileDTO);
+        public MedicalFileDTO addMedicalFile(@RequestBody final PatientDTO patientDTO) throws Exception {
+        log.info("\nNEW HTTP POST REQUEST on /medicalFiles with content = {}", patientDTO);
+        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(patientDTO);
         log.info("Request result = {}", addedMedicalFileDTO.toString());
         return addedMedicalFileDTO;
     }

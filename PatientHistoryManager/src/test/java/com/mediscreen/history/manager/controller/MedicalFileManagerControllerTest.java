@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -25,7 +26,9 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.PatientDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
+import com.mediscreen.history.manager.enums.Gender;
 import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
 import com.mediscreen.history.manager.service.IMedicalFileManagerService;
 
@@ -110,24 +113,26 @@ public class MedicalFileManagerControllerTest {
     @Test
     public void givenANewPatient_whenRequestAddMedicalFile_thenCallServiceMethod() throws Exception {
         // GIVEN
+        PatientDTO patientDTO = new PatientDTO(UUID.fromString("390ef9a0-9f50-4d63-9740-c7a235115170"), "John", "DOE",
+                LocalDate.of(1968, 9, 16), Gender.M);
         MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
         medicalFileDTO.setLastName("DOE");
         medicalFileDTO.setAge(52);
-        given(medicalFileManagerService.addMedicalFile(any(MedicalFileDTO.class))).willReturn(medicalFileDTO);
+        given(medicalFileManagerService.addMedicalFile(any(PatientDTO.class))).willReturn(medicalFileDTO);
 
         // WHEN
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         System.out.println(mapper.writeValueAsString(medicalFileDTO));
         mvc.perform(MockMvcRequestBuilders.post("/medicalFiles")
-                .content(mapper.writeValueAsString(medicalFileDTO))
+                .content(mapper.writeValueAsString(patientDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         // THEN
-        verify(medicalFileManagerService).addMedicalFile(any(MedicalFileDTO.class));
+        verify(medicalFileManagerService).addMedicalFile(any(PatientDTO.class));
     }
 
     @Test

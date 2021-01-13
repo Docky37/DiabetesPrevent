@@ -3,6 +3,7 @@ package com.mediscreen.history.manager.service;
 import java.util.UUID;
 
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.PatientDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
 import com.mediscreen.history.manager.exceptions.ForbiddenException;
 import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
@@ -38,13 +39,13 @@ public interface IMedicalFileManagerService {
     /**
      * This method allows you to add a new medicalFile for a new patient.
      *
-     * @param medicalFileDTO
+     * @param patientDTO
      * @return a MedicalFileDTO (the added medical file)
      * @throws ForbiddenException
      * @throws UnauthorizedException
      * @throws MedicalFileNotFoundException
      */
-    MedicalFileDTO addMedicalFile(MedicalFileDTO medicalFileDTO)
+    MedicalFileDTO addMedicalFile(PatientDTO patientDTO)
             throws UnauthorizedException, ForbiddenException, MedicalFileNotFoundException;
 
     /**

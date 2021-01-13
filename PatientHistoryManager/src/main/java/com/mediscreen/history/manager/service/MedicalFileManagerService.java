@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.PatientDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
 import com.mediscreen.history.manager.exceptions.ForbiddenException;
 import com.mediscreen.history.manager.exceptions.MedicalFileNotFoundException;
@@ -147,19 +148,20 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    public MedicalFileDTO addMedicalFile(final MedicalFileDTO medicalFileDTO)
+    public MedicalFileDTO addMedicalFile(final PatientDTO patientDTO)
             throws UnauthorizedException, ForbiddenException {
 
         MedicalFileDTO addedMedicalFileDTO = null;
         try {
-            addedMedicalFileDTO = findMedicalFileById(UUID.fromString(medicalFileDTO.getPatientId()));
+            addedMedicalFileDTO = findMedicalFileById(patientDTO.getPatientId());
         } catch (Exception e) {
             e.printStackTrace();
             if (addedMedicalFileDTO == null) {
+                patientDTO.setAge();
                 final String getMedicalFileUri = "/medicalFiles/";
                 Mono<? extends EntityModel> medFileMono = webClientMedicalFile.post()
                         .uri(getMedicalFileUri)
-                        .bodyValue(medicalFileDTO)
+                        .bodyValue(patientDTO)
                         .accept(MediaTypes.HAL_JSON)
                         .retrieve()
                         .onStatus(httpStatus -> HttpStatus.UNAUTHORIZED.equals(httpStatus),
@@ -175,7 +177,7 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
                 log.debug("MedicalFileDTO --> {}", medFileHashMap.toString());
 
                 addedMedicalFileDTO = new MedicalFileDTO();
-                addedMedicalFileDTO.setPatientId(medicalFileDTO.getPatientId());
+                addedMedicalFileDTO.setPatientId(patientDTO.getPatientId().toString());
                 addedMedicalFileDTO.setFirstName((String) medFileHashMap.get("firstName"));
                 addedMedicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
                 addedMedicalFileDTO.setAge((int) (medFileHashMap.get("age")));

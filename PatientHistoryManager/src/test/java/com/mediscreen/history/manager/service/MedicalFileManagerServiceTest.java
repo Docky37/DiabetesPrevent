@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,7 +18,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.PatientDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
+import com.mediscreen.history.manager.enums.Gender;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -159,6 +162,8 @@ public class MedicalFileManagerServiceTest {
     @DisplayName("Given a new patient, when call addMedicalFile, then returns his new medical file.")
     public void givenANewPatient_whenAddMedicalFile_thenReturnsHisNewMedicalFile() throws Exception {
         // GIVEN
+        PatientDTO patientDTO = new PatientDTO(UUID.fromString("390ef9a0-9f50-4d63-9740-c7a235115170"), "John", "DOE",
+                LocalDate.of(1968, 9, 16), Gender.M);
         MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
@@ -178,7 +183,7 @@ public class MedicalFileManagerServiceTest {
                         .setBody(jsonResult0));
 
         // WHEN
-        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(medicalFileDTO);
+        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(patientDTO);
         // THEN
         assertThat(addedMedicalFileDTO).isNotNull();
         assertThat(addedMedicalFileDTO.getFirstName()).isEqualTo("John");
@@ -190,6 +195,8 @@ public class MedicalFileManagerServiceTest {
     @DisplayName("Given MedicalFile alreadyexist, when call addMedicalFile, then returns existing medical file.")
     public void givenAlreadyExistingMedicalFile_whenAddMedicalFile_thenReturnsExistingMedicalFile() throws Exception {
         // GIVEN
+        PatientDTO patientDTO = new PatientDTO(UUID.fromString("390ef9a0-9f50-4d63-9740-c7a235115170"), "John", "DOE",
+                LocalDate.of(1968, 9, 16), Gender.M);
         MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
         medicalFileDTO.setPatientId("390ef9a0-9f50-4d63-9740-c7a235115170");
         medicalFileDTO.setFirstName("John");
@@ -203,7 +210,7 @@ public class MedicalFileManagerServiceTest {
                         .setBody(jsonResult0));
 
         // WHEN
-        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(medicalFileDTO);
+        MedicalFileDTO addedMedicalFileDTO = medicalFileManagerService.addMedicalFile(patientDTO);
         // THEN
         assertThat(addedMedicalFileDTO).isNotNull();
         assertThat(addedMedicalFileDTO.getFirstName()).isEqualTo("John");
