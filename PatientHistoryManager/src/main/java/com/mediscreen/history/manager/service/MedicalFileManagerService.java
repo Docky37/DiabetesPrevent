@@ -84,6 +84,7 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
         medicalFileDTO.setLastName((String) medFileHashMap.get("lastName"));
         medicalFileDTO.setBirthDate(LocalDate.parse((String) (medFileHashMap.get("birthDate"))));
         medicalFileDTO.setAge(AgeCalculation.calculateAge(medicalFileDTO.getBirthDate()));
+        medicalFileDTO.setGender((String) medFileHashMap.get("gender"));
         List<VisitDTO> visits = (List<VisitDTO>) medFileHashMap.get("visits");
         medicalFileDTO.setVisits(visits);
 

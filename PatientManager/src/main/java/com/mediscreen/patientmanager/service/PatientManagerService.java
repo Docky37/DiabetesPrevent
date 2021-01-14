@@ -248,36 +248,32 @@ public class PatientManagerService implements IPatientManagerService {
             throws UnauthorizedException, ForbiddenException {
 
         PatientDetailsDTO patientDetailsDTO = null;
-        try {
-            patientDetailsDTO = showPersonalInfo(newPatient.getPatientId());
-        } catch (PatientNotFoundException e) {
-            if (patientDetailsDTO == null) {
-                final String getPatientsUri = "/patients";
+        // TODO: Intercept 409 conflict (person already exist)
 
-                Mono<? extends EntityModel> patientMono = webClientPatientAdm.post()
-                        .uri(getPatientsUri)
-                        .bodyValue(newPatient)
-                        .accept(MediaTypes.HAL_JSON)
-                        .retrieve()
-                        .bodyToMono(EntityModel.of(Object.class).getClass());
+        final String getPatientsUri = "/patients";
 
-                EntityModel<?> addedPatient = Optional.ofNullable(patientMono.block()).orElseThrow();
-                LinkedHashMap<String, Object> patientHashMap = Optional
-                        .ofNullable((LinkedHashMap<String, Object>) addedPatient.getContent()).orElseThrow();
-                log.debug("PatientDetailsDTO --> {}", patientHashMap.toString());
-                patientDetailsDTO = new PatientDetailsDTO.Builder(
-                        UUID.fromString(addedPatient.getLinks().toString().substring(ID_FIRST_CHARACTER_INDEX + 1,
-                                ID_FIRST_CHARACTER_INDEX + 1 + UUID_SIZE)),
-                        (String) patientHashMap.get("firstName"),
-                        (String) patientHashMap.get("lastName"),
-                        LocalDate.parse((String) patientHashMap.get("birthDate")),
-                        patientHashMap.get("gender").equals("M") ? Gender.M : Gender.F)
-                                .build();
+        Mono<? extends EntityModel> patientMono = webClientPatientAdm.post()
+                .uri(getPatientsUri)
+                .bodyValue(newPatient)
+                .accept(MediaTypes.HAL_JSON)
+                .retrieve()
+                .bodyToMono(EntityModel.of(Object.class).getClass());
 
-                log.debug("personsDTO --> {}", patientDetailsDTO.toString());
+        EntityModel<?> addedPatient = Optional.ofNullable(patientMono.block()).orElseThrow();
+        LinkedHashMap<String, Object> patientHashMap = Optional
+                .ofNullable((LinkedHashMap<String, Object>) addedPatient.getContent()).orElseThrow();
+        log.debug("PatientDetailsDTO --> {}", patientHashMap.toString());
+        patientDetailsDTO = new PatientDetailsDTO.Builder(
+                UUID.fromString(addedPatient.getLinks().toString().substring(ID_FIRST_CHARACTER_INDEX + 1,
+                        ID_FIRST_CHARACTER_INDEX + 1 + UUID_SIZE)),
+                (String) patientHashMap.get("firstName"),
+                (String) patientHashMap.get("lastName"),
+                LocalDate.parse((String) patientHashMap.get("birthDate")),
+                patientHashMap.get("gender").equals("M") ? Gender.M : Gender.F)
+                        .build();
 
-            }
-        }
+        log.debug("personsDTO --> {}", patientDetailsDTO.toString());
+
         return patientDetailsDTO;
     }
 

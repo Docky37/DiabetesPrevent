@@ -58,11 +58,13 @@ public class MedicalFile {
     /**
      * Current age of the patient.
      */
+    @Field(value = "age")
     private int age;
 
     /**
      * The gender of this patient. Available values are 'M' for Male or 'F' for Female.
      */
+    @Field(value = "gender")
     private Gender gender;
 
     /**
