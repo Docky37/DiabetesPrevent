@@ -1,4 +1,4 @@
-package com.mediscreen.patientmanager.exception;
+package com.mediscreen.patientmanager.exceptions;
 
 /**
  * Exception that occurs when PatientManager does not accept user connection.
@@ -17,6 +17,15 @@ public class UnauthorizedException extends Exception {
      */
     public UnauthorizedException() {
 
+    }
+
+    /**
+     * Class constructor.
+     *
+     * @param message
+     */
+    public UnauthorizedException(final String message) {
+        super(message);
     }
 
 }

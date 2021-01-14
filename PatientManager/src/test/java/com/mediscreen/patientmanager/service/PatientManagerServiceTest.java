@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.mediscreen.patientmanager.dto.PatientDTO;
 import com.mediscreen.patientmanager.dto.PatientDetailsDTO;
 import com.mediscreen.patientmanager.enums.Gender;
-import com.mediscreen.patientmanager.exception.PatientNotFoundException;
 import com.mediscreen.patientmanager.service.PatientManagerService;
 
 import okhttp3.mockwebserver.MockResponse;
@@ -160,9 +159,8 @@ public class PatientManagerServiceTest {
                         .setBody(jsonResult0));
 
         // WHEN
-
         // THEN
-        assertThrows(PatientNotFoundException.class, () -> {
+        assertThrows(Exception.class, () -> {
             patientAdmManagerService.findByLastName("JONES");
         });
     }

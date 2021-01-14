@@ -4,26 +4,28 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.http.HttpStatus;
 
 import com.mediscreen.patientmanager.dto.PatientDTO;
 import com.mediscreen.patientmanager.dto.PatientDetailsDTO;
 import com.mediscreen.patientmanager.enums.Gender;
-import com.mediscreen.patientmanager.exception.PatientNotFoundException;
-import com.mediscreen.patientmanager.exception.UnauthorizedException;
+import com.mediscreen.patientmanager.exceptions.PatientNotFoundException;
+import com.mediscreen.patientmanager.exceptions.UnauthorizedException;
+import com.mediscreen.patientmanager.exceptions.ForbiddenException;
 
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Mono;
 
 /**
- * This service class use a WebClient to request the API PatientAdm.
+ * This service class use a WebClient to request the API Patient.
  *
  * @author Thierry Schreiner
  */
@@ -79,60 +81,48 @@ public class PatientManagerService implements IPatientManagerService {
      * @return a List<PatientDTO>
      * @throws Exception
      */
-    public List<PatientDTO> readResponseWithAPatientList(final String getPatientsUri) throws Exception {
-        @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public List<PatientDTO> readResponseWithAPatientList(final String getPatientsUri)
+            throws UnauthorizedException, ForbiddenException, PatientNotFoundException {
         Mono<? extends EntityModel> patientMono;
+        patientMono = webClientPatientAdm.get()
+                .uri(getPatientsUri)
+                .accept(MediaTypes.HAL_JSON)
+                .retrieve()
+                .onStatus(httpStatus -> HttpStatus.UNAUTHORIZED.equals(httpStatus),
+                        response -> Mono.just(new UnauthorizedException("401 Unauthorized")))
+                .onStatus(httpStatus -> HttpStatus.FORBIDDEN.equals(httpStatus),
+                        response -> Mono.just(new ForbiddenException("403 Forbidden")))
+                .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus),
+                        response -> Mono.just(new PatientNotFoundException("404 Not found")))
+                .bodyToMono(EntityModel.of(Object.class).getClass());
 
-        try {
-            patientMono = webClientPatientAdm.get()
-                    .uri(getPatientsUri)
-                    .accept(MediaTypes.HAL_JSON)
-                    .retrieve()
-                    .bodyToMono(EntityModel.of(Object.class).getClass());
+        Object requestResult = Optional.ofNullable((EntityModel) patientMono.block()).orElseThrow();
+        LinkedHashMap<String, LinkedHashMap<String, List<?>>> object = Optional.ofNullable(
+                (LinkedHashMap<String, LinkedHashMap<String, List<?>>>) ((EntityModel) requestResult).getContent())
+                .orElseThrow();
 
-            @SuppressWarnings("unchecked")
-            LinkedHashMap<String, LinkedHashMap<String, List<?>>> object =
-                    (LinkedHashMap<String, LinkedHashMap<String, List<?>>>) patientMono.block().getContent();
-            @SuppressWarnings("unchecked")
-            List<LinkedHashMap<String, Object>> patientsHashMapList = (List<LinkedHashMap<String, Object>>) object
-                    .get("_embedded").get("patients");
+        List<LinkedHashMap<String, Object>> patientsHashMapList = (List<LinkedHashMap<String, Object>>) object
+                .get("_embedded").get("patients");
 
-            List<PatientDTO> listOfPatientDTO = new ArrayList<>();
-            patientsHashMapList.forEach(p -> {
-                @SuppressWarnings("unchecked")
-                LinkedHashMap<String, LinkedHashMap<String, String>> links =
-                        (LinkedHashMap<String, LinkedHashMap<String, String>>) p.get("_links");
-                UUID patientId = UUID.fromString(links.get("self").get("href").substring(ID_FIRST_CHARACTER_INDEX));
+        List<PatientDTO> listOfPatientDTO = new ArrayList<>();
+        patientsHashMapList.forEach(p -> {
+            LinkedHashMap<String, LinkedHashMap<String, String>> links =
+                    (LinkedHashMap<String, LinkedHashMap<String, String>>) p
+                    .get("_links");
+            UUID patientId = UUID.fromString(links.get("self").get("href").substring(ID_FIRST_CHARACTER_INDEX));
 
-                listOfPatientDTO.add(new PatientDTO(
-                        patientId,
-                        (String) p.get("firstName"),
-                        (String) p.get("lastName"),
-                        LocalDate.parse((String) p.get("birthDate")),
-                        p.get("gender").equals("M") ? Gender.M : Gender.F));
-            });
+            listOfPatientDTO.add(new PatientDTO(
+                    patientId,
+                    (String) p.get("firstName"),
+                    (String) p.get("lastName"),
+                    LocalDate.parse((String) p.get("birthDate")),
+                    p.get("gender").equals("M") ? Gender.M : Gender.F));
+        });
 
-            log.debug("List of PatientDTO --> {}", listOfPatientDTO.toString());
-            return listOfPatientDTO;
+        log.debug("List of PatientDTO --> {}", listOfPatientDTO.toString());
+        return listOfPatientDTO;
 
-        } catch (WebClientResponseException e) {
-            switch (e.getStatusCode()) {
-            case UNAUTHORIZED:
-                log.error("401 - Unauthorized\n" + e);
-                throw new UnauthorizedException();
-            case FORBIDDEN:
-                log.error("403 - Forbidden\n" + e);
-                break;
-            case NOT_FOUND:
-                log.error("404 - Not found\n" + e);
-                throw new PatientNotFoundException("message");
-            default:
-                log.error(e);
-                throw new Exception();
-            }
-
-        }
-        return null;
     }
 
     /**
@@ -156,64 +146,71 @@ public class PatientManagerService implements IPatientManagerService {
      *
      * @throws Exception
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public PatientDetailsDTO showPersonalInfo(final UUID patientId) throws Exception {
-        try {
-            final String getPatientsUri = "/patients/" + patientId;
-            @SuppressWarnings("rawtypes")
-            Mono<? extends EntityModel> patientMono = webClientPatientAdm.get()
-                    .uri(getPatientsUri)
-                    .accept(MediaTypes.HAL_JSON)
-                    .retrieve()
-                    .bodyToMono(EntityModel.of(Object.class).getClass());
+    public PatientDetailsDTO showPersonalInfo(final UUID patientId)
+            throws UnauthorizedException, ForbiddenException, PatientNotFoundException {
+        Mono<? extends EntityModel> patientMono = findbyIdSubMethod(patientId);
 
-            LinkedHashMap<String, String> patientHashMap = (LinkedHashMap<String, String>) patientMono.block()
-                    .getContent();
-            log.debug("PatientDetailsDTO --> {}", patientHashMap.toString());
+        EntityModel requestResult = Optional.ofNullable((EntityModel) patientMono.block()).orElseThrow();
+        LinkedHashMap<String, String> patientHashMap = Optional.ofNullable((LinkedHashMap<String, String>) requestResult
+                .getContent()).orElseThrow();
+        log.debug("PatientDetailsDTO --> {}", patientHashMap.toString());
 
-            PatientDetailsDTO patientDetailsDTO = new PatientDetailsDTO.Builder(
-                    patientId,
-                    patientHashMap.get("firstName"),
-                    patientHashMap.get("lastName"),
-                    LocalDate.parse((String) patientHashMap.get("birthDate")),
-                    patientHashMap.get("gender").equals("M") ? Gender.M : Gender.F)
-                            .setPhone(patientHashMap.get("phone"))
-                            .setAddressLine1(patientHashMap.get("addressLine1"))
-                            .setAddressLine2(patientHashMap.get("addressLine2"))
-                            .setCity(patientHashMap.get("city"))
-                            .setZipCode(patientHashMap.get("zipCode")).build();
+        PatientDetailsDTO patientDetailsDTO = new PatientDetailsDTO.Builder(
+                patientId,
+                patientHashMap.get("firstName"),
+                patientHashMap.get("lastName"),
+                LocalDate.parse((String) patientHashMap.get("birthDate")),
+                patientHashMap.get("gender").equals("M") ? Gender.M : Gender.F)
+                        .setPhone(patientHashMap.get("phone"))
+                        .setAddressLine1(patientHashMap.get("addressLine1"))
+                        .setAddressLine2(patientHashMap.get("addressLine2"))
+                        .setCity(patientHashMap.get("city"))
+                        .setZipCode(patientHashMap.get("zipCode")).build();
 
-            log.debug("personsDTO --> {}", patientDetailsDTO.toString());
-            return patientDetailsDTO;
-        } catch (WebClientResponseException e) {
-            switch (e.getStatusCode()) {
-            case UNAUTHORIZED:
-                log.error("401 - Unauthorized\n" + e);
-                throw new UnauthorizedException();
-            case FORBIDDEN:
-                log.error("403 - Forbidden\n" + e);
-                break;
-            case NOT_FOUND:
-                log.error("404 - Not found\n" + e);
-                throw new PatientNotFoundException();
-            default:
-                log.error(e);
-                throw new Exception();
-            }
+        log.debug("personsDTO --> {}", patientDetailsDTO.toString());
+        return patientDetailsDTO;
+    }
 
-        }
-        return null;
+    /**
+     * Sub method used to make a findById request on patient with WebClient. This method is called by showPersonalInfo,
+     * update and addPatient methods.
+     *
+     * @param patientId
+     * @return a Mono<? extends EntityModel>
+     */
+    @SuppressWarnings("rawtypes")
+    private Mono<? extends EntityModel> findbyIdSubMethod(final UUID patientId)
+            throws UnauthorizedException, ForbiddenException, PatientNotFoundException {
+        final String getPatientsUri = "/patients/" + patientId;
+        Mono<? extends EntityModel> patientMono = webClientPatientAdm.get()
+                .uri(getPatientsUri)
+                .accept(MediaTypes.HAL_JSON)
+                .retrieve()
+                .onStatus(httpStatus -> HttpStatus.UNAUTHORIZED.equals(httpStatus),
+                        response -> Mono.just(new UnauthorizedException("401 Unauthorized")))
+                .onStatus(httpStatus -> HttpStatus.FORBIDDEN.equals(httpStatus),
+                        response -> Mono.just(new ForbiddenException("403 Forbidden")))
+                .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus),
+                        response -> Mono.just(new PatientNotFoundException("404 Not found")))
+                .bodyToMono(EntityModel.of(Object.class).getClass());
+        return patientMono;
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @throws Exception
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public PatientDetailsDTO update(final UUID patientId, final PatientDetailsDTO newPatientDetails) {
+    public PatientDetailsDTO update(final UUID patientId, final PatientDetailsDTO newPatientDetails)
+            throws UnauthorizedException, ForbiddenException, PatientNotFoundException {
         final String getPatientsUri = "/patients/" + patientId;
-        @SuppressWarnings("rawtypes")
+
+        findbyIdSubMethod(patientId);
+
         Mono<? extends EntityModel> patientMono = webClientPatientAdm.put()
                 .uri(getPatientsUri)
                 .bodyValue(newPatientDetails)
@@ -221,8 +218,9 @@ public class PatientManagerService implements IPatientManagerService {
                 .retrieve()
                 .bodyToMono(EntityModel.of(Object.class).getClass());
 
-        LinkedHashMap<String, String> patientHashMap = (LinkedHashMap<String, String>) patientMono.block()
-                .getContent();
+        EntityModel requestResult = Optional.ofNullable(patientMono.block()).orElseThrow();
+        LinkedHashMap<String, String> patientHashMap = Optional.ofNullable((LinkedHashMap<String, String>) requestResult
+                .getContent()).orElseThrow();
         log.debug("PatientDetailsDTO --> {}", patientHashMap.toString());
 
         PatientDetailsDTO patientDetailsDTO = new PatientDetailsDTO.Builder(
@@ -244,11 +242,16 @@ public class PatientManagerService implements IPatientManagerService {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public PatientDetailsDTO addPatient(final PatientDTO newPatient) {
+    public PatientDetailsDTO addPatient(final PatientDTO newPatient)
+            throws UnauthorizedException, ForbiddenException {
+
+        PatientDetailsDTO patientDetailsDTO = null;
+        // TODO: Intercept 409 conflict (person already exist)
+
         final String getPatientsUri = "/patients";
-        @SuppressWarnings("rawtypes")
+
         Mono<? extends EntityModel> patientMono = webClientPatientAdm.post()
                 .uri(getPatientsUri)
                 .bodyValue(newPatient)
@@ -256,10 +259,11 @@ public class PatientManagerService implements IPatientManagerService {
                 .retrieve()
                 .bodyToMono(EntityModel.of(Object.class).getClass());
 
-        EntityModel<?> addedPatient = patientMono.block();
-        LinkedHashMap<String, Object> patientHashMap = (LinkedHashMap<String, Object>) addedPatient.getContent();
+        EntityModel<?> addedPatient = Optional.ofNullable(patientMono.block()).orElseThrow();
+        LinkedHashMap<String, Object> patientHashMap = Optional
+                .ofNullable((LinkedHashMap<String, Object>) addedPatient.getContent()).orElseThrow();
         log.debug("PatientDetailsDTO --> {}", patientHashMap.toString());
-        PatientDetailsDTO patientDetailsDTO = new PatientDetailsDTO.Builder(
+        patientDetailsDTO = new PatientDetailsDTO.Builder(
                 UUID.fromString(addedPatient.getLinks().toString().substring(ID_FIRST_CHARACTER_INDEX + 1,
                         ID_FIRST_CHARACTER_INDEX + 1 + UUID_SIZE)),
                 (String) patientHashMap.get("firstName"),
@@ -269,6 +273,7 @@ public class PatientManagerService implements IPatientManagerService {
                         .build();
 
         log.debug("personsDTO --> {}", patientDetailsDTO.toString());
+
         return patientDetailsDTO;
     }
 

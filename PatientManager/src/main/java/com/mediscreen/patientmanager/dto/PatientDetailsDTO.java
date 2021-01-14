@@ -5,7 +5,9 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mediscreen.patientmanager.enums.Gender;
+import com.mediscreen.patientmanager.utils.AgeCalculation;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,26 +18,8 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public final class PatientDetailsDTO extends PatientDTO {
-
-    /**
-     * Class constructor with builder parameter.
-     *
-     * @param builder
-     */
-    private PatientDetailsDTO(final Builder builder) {
-        super.setPatientId(builder.patientId);
-        super.setFirstName(builder.firstName);
-        super.setLastName(builder.lastName);
-        super.setBirthDate(builder.birthDate);
-        super.setGender(builder.gender);
-        this.phone = builder.phone;
-        this.addressLine1 = builder.addressLine1;
-        this.addressLine2 = builder.addressLine2;
-        this.city = builder.city;
-        this.zipCode = builder.zipCode;
-
-    }
 
     /**
      * The phone number of this patient.
@@ -63,9 +47,27 @@ public final class PatientDetailsDTO extends PatientDTO {
     private String zipCode;
 
     /**
-     * Internal builder class.
+     * Class constructor with builder parameter.
      *
-     * @author Thierry Schreiner
+     * @param builder
+     */
+    private PatientDetailsDTO(final Builder builder) {
+        super.setPatientId(builder.patientId);
+        super.setFirstName(builder.firstName);
+        super.setLastName(builder.lastName);
+        super.setBirthDate(builder.birthDate);
+        super.setGender(builder.gender);
+        super.setAge(builder.age);
+        this.phone = builder.phone;
+        this.addressLine1 = builder.addressLine1;
+        this.addressLine2 = builder.addressLine2;
+        this.city = builder.city;
+        this.zipCode = builder.zipCode;
+
+    }
+
+    /**
+     * Internal builder class.
      */
     public static class Builder {
         /**
@@ -89,6 +91,11 @@ public final class PatientDetailsDTO extends PatientDTO {
          * The gender of the patient.
          */
         private Gender gender;
+
+        /**
+         * The patient age in years. Calculate value from birthDate.
+         */
+        private int age;
 
         /**
          * Setter of Phone.
@@ -182,6 +189,7 @@ public final class PatientDetailsDTO extends PatientDTO {
             lastName = pLastName;
             birthDate = pBirthDate;
             gender = pGender;
+            age = AgeCalculation.calculateAge(pBirthDate);
         }
 
         /**
@@ -192,6 +200,7 @@ public final class PatientDetailsDTO extends PatientDTO {
         public PatientDetailsDTO build() {
             return new PatientDetailsDTO(this);
         }
+
     }
 
 }

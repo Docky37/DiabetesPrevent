@@ -43,15 +43,17 @@ public interface IPatientManagerService {
      * @param patientId
      * @param newPatientDetails
      * @return a PatientDetailsDTO
+     * @throws Exception
      */
-    PatientDetailsDTO update(UUID patientId, PatientDetailsDTO newPatientDetails);
+    PatientDetailsDTO update(UUID patientId, PatientDetailsDTO newPatientDetails) throws Exception;
 
     /**
      * This method is used to add a new patient in Patient Database.
      *
      * @param newPatient
      * @return a PatientDetailsDTO
+     * @throws Exception
      */
-    PatientDetailsDTO addPatient(PatientDTO newPatient);
+    PatientDetailsDTO addPatient(PatientDTO newPatient) throws Exception;
 
 }

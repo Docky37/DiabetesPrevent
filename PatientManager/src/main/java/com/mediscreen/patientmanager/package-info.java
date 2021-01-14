@@ -1,4 +1,4 @@
 /**
- * Main package of PatientAdmManager application.
+ * Main package of PatientHistory application.
  */
 package com.mediscreen.patientmanager;

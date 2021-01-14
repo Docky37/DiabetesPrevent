@@ -131,23 +131,12 @@ System.out.println(mapper.writeValueAsString(newPatientDetails));
     @Test
     public void whenAddPatient_thenCallServiceMethod() throws Exception {
         // GIVEN
-        PatientDetailsDTO newPatient = new PatientDetailsDTO.Builder(
+        PatientDTO newPatient = new PatientDTO(null, "Jane", "DOE", LocalDate.parse("1967-09-16"), Gender.F);
+        PatientDetailsDTO addedPatient = new PatientDetailsDTO.Builder(
                 null, "Jane", "DOE", LocalDate.parse("1967-09-16"), Gender.F).build();
 
-        PatientDetailsDTO newPatientDetails = new PatientDetailsDTO.Builder(
-                UUID.fromString("2d53c2b2-7ba5-438e-ab7f-584b1e3644b9"),
-                "Jane",
-                "DOE",
-                LocalDate.parse("1967-09-16"),
-                Gender.F)
-                .setPhone("")
-                .setAddressLine1("15 Main Street")
-                .setAddressLine2("")
-                .setCity("DALLAS")
-                .setZipCode("75001").build();
 
-
-        given(patientManagerService.addPatient(newPatient)).willReturn(newPatient);
+        given(patientManagerService.addPatient(any(PatientDTO.class))).willReturn(addedPatient);
         // WHEN
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
