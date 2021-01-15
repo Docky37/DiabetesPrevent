@@ -248,7 +248,6 @@ public class PatientManagerService implements IPatientManagerService {
             throws UnauthorizedException, ForbiddenException {
 
         PatientDetailsDTO patientDetailsDTO = null;
-        // TODO: Intercept 409 conflict (person already exist)
 
         final String getPatientsUri = "/patients";
 

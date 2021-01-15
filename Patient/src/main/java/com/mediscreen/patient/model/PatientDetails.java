@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 @Entity
 @DiscriminatorValue("PatientDetails")
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 public class PatientDetails extends Patient {
 
     /**

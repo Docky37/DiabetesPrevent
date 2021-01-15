@@ -6,5 +6,12 @@ package com.mediscreen.history.enums;
  * @author Thierry SCHREINER
  */
 public enum Gender {
-    M, F;
+    /**
+     * M for Male.
+     */
+    M,
+    /**
+     * F for female.
+     */
+    F;
 }
