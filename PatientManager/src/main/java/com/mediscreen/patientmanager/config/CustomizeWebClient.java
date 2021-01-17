@@ -16,7 +16,8 @@ public class CustomizeWebClient {
      */
     @Bean
     public WebClient getWebClientPatientAdm() {
-        return WebClient.create("http://127.0.0.1:7788"); // run from IDE
+        //return WebClient.create("http://127.0.0.1:7788"); // run from IDE
+        return WebClient.create("http://patientv1:7788"); // Docker
     }
 
     /**
