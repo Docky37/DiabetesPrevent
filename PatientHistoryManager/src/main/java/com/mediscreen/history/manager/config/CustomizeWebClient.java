@@ -16,7 +16,8 @@ public class CustomizeWebClient {
      */
     @Bean
     public WebClient getWebClientPatientHistory() {
-        return WebClient.create("http://127.0.0.1:7799"); // run from IDE
+        //return WebClient.create("http://127.0.0.1:7799"); // run from IDE
+        return WebClient.create("http://pat-histo:7799"); // Docker
     }
 
     /**
@@ -30,6 +31,17 @@ public class CustomizeWebClient {
         return webClientBuilder -> {
             configurer.registerHypermediaTypes(webClientBuilder);
         };
+    }
+
+    /**
+     * Defines the WebClient beans to deal with PatientManager API.
+     *
+     * @return a WebClient
+     */
+    @Bean
+    public WebClient getWebClientPatientManager() {
+        //return WebClient.create("http://127.0.0.1:8081"); // run from IDE
+        return WebClient.create("http://pat-manag:8081"); // Docker
     }
 
 }

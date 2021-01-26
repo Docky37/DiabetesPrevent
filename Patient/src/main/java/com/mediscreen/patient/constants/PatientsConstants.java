@@ -32,4 +32,7 @@ public class PatientsConstants {
      */
     public static final int ZIP_CODE_MAX_LENGTH = 6;
 
+    protected PatientsConstants() {
+
+    }
 }

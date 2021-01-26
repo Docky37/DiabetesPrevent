@@ -1,0 +1,49 @@
+age,riskFactorCount,gender,reponse
+29,0,M,None
+29,0,F,None
+29,1,M,None
+29,1,F,None
+29,2,M,None
+29,2,F,None
+29,3,M,In Danger
+29,3,F,None
+29,4,M,In Danger
+29,4,F,In Danger
+29,5,M,Early onset
+29,5,F,In Danger
+29,6,M,Early onset
+29,6,F,In Danger
+29,7,M,Early onset
+29,7,F,Early onset
+29,8,H,Early onset
+29,8,F,Early onset
+29,9,M,Early onset
+29,9,F,Early onset
+29,10,H,Early onset
+29,10,F,Early onset
+29,11,M,Early onset
+29,11,F,Early onset
+30,0,M,None
+30,0,F,None
+30,1,M,None
+30,1,F,None
+30,2,M,Borderline
+30,2,F,Borderline
+30,3,M,Borderline
+30,3,F,Borderline
+30,4,M,Borderline
+30,4,F,Borderline
+30,5,M,Borderline
+30,5,F,Borderline
+30,6,M,In Danger
+30,6,F,In Danger
+30,7,M,In Danger
+30,7,F,In Danger
+30,8,M,Early onset
+30,8,F,Early onset
+30,9,M,Early onset
+30,9,F,Early onset
+30,10,M,Early onset
+30,10,F,Early onset
+30,11,M,Early onset
+30,11,F,Early onset

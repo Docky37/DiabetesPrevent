@@ -57,7 +57,7 @@ dependencies {
 // BOOT JAR ********************************************************************
 bootJar {
     manifest {
-        attributes 'Start-Class': 'com.mediscreen.patient.manager.PatientManagerApplication'
+        attributes 'Start-Class': 'com.mediscreen.patientmanager.PatientManagerApplication'
     }
     
 }
