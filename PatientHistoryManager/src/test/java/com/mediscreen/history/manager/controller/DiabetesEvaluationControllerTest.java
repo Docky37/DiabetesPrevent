@@ -24,6 +24,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mediscreen.history.manager.constants.DiabetesEvaluation;
 import com.mediscreen.history.manager.dto.DiabetesEvalReportDTO;
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.PatientDetailsDTO;
 import com.mediscreen.history.manager.service.IDiabetesEvaluationService;;;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -52,7 +53,7 @@ public class DiabetesEvaluationControllerTest {
         // GIVEN
         MedicalFileDTO medicalFileDTO = new MedicalFileDTO();
         given(diabetesEvaluationService.evaluateDiabetes(any(MedicalFileDTO.class)))
-                .willReturn(new DiabetesEvalReportDTO(3, DiabetesEvaluation.DANGER));
+                .willReturn(new DiabetesEvalReportDTO(new PatientDetailsDTO(), 3, DiabetesEvaluation.DANGER));
         // WHEN
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

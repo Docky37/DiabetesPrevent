@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
@@ -46,7 +47,7 @@ public class MedicalFileManagerService implements IMedicalFileManagerService {
      * @param pWebClientMedicalFile
      */
     @Autowired
-    public MedicalFileManagerService(final WebClient pWebClientMedicalFile) {
+    public MedicalFileManagerService(@Qualifier("getWebClientPatientHistory") final WebClient pWebClientMedicalFile) {
         webClientMedicalFile = pWebClientMedicalFile;
     }
 

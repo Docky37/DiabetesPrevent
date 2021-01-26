@@ -14,6 +14,11 @@ import lombok.ToString;
 public class DiabetesEvalReportDTO {
 
     /**
+     * The details of the patient.
+     */
+    private PatientDetailsDTO patient;
+
+    /**
      * The count of the patient's diabetes risk factors.
      */
     private int riskFactorsCount;

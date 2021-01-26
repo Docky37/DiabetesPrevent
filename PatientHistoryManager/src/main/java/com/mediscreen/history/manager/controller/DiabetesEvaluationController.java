@@ -1,8 +1,10 @@
 package com.mediscreen.history.manager.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mediscreen.history.manager.dto.DiabetesEvalReportDTO;
@@ -31,8 +33,13 @@ public class DiabetesEvaluationController {
      * @throws Exception
      */
     @ApiOperation(value = "Return the diabetes evaluation report generated from a patient medical file.",
-            response = String.class)
+            notes = "This endpoint of PatientHistoryManager allows user to get a Diabetes evaluation of the patient."
+                    + "This report is made from a risk factor key words search in a concatenation of all practitioner's"
+                    + " notes. Taking into consideration the patient's gender and age, the count of risk factors decide"
+                    + "the classification into one of the four categories (None, Borderline, In Danger, Early onset).",
+            response = DiabetesEvalReportDTO.class)
     @PostMapping("/diabetesEvaluations")
+    @ResponseStatus(HttpStatus.OK)
     public DiabetesEvalReportDTO medicalFileById(@RequestBody final MedicalFileDTO medicalFileDTO) throws Exception {
         log.info("NEW HTTP GET REQUEST on /diabetesEvaluations");
         DiabetesEvalReportDTO report = diabetesEvaluationService.evaluateDiabetes(medicalFileDTO);

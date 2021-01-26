@@ -4,19 +4,32 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.mediscreen.history.manager.constants.DiabetesEvaluation;
 import com.mediscreen.history.manager.dto.DiabetesEvalReportDTO;
 import com.mediscreen.history.manager.dto.MedicalFileDTO;
+import com.mediscreen.history.manager.dto.PatientDetailsDTO;
 import com.mediscreen.history.manager.dto.VisitDTO;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
 public class DiabetesEvaluationService implements IDiabetesEvaluationService {
 
+    /**
+     * Constant that give a time to wait.
+     */
+    private static final int TIME_TO_WAIT = 500;
+    /**
+     * Variable used to store the requested PatientDetailsDTO that will be inserted in report.
+     */
+    private PatientDetailsDTO patient;
     /**
      * Variable used to store the concatenation of all practitionner's notes inserted in the medical file.
      */
@@ -25,12 +38,38 @@ public class DiabetesEvaluationService implements IDiabetesEvaluationService {
      * Variable used to store the count of risk factors presented by the patient.
      */
     private int riskFactorCount = 0;
+    /**
+     * A MedicalFile Webclient declaration. The bean is injected by Spring with the class constructor @Autowired
+     * annotation.
+     */
+    private WebClient webClientPatientManager;
+
+    /**
+     * This class constructor allows Spring to inject a WebClient bean.
+     *
+     * @param pWebClientPatientManager
+     */
+    @Autowired
+    public DiabetesEvaluationService(
+            @Qualifier("getWebClientPatientManager") final WebClient pWebClientPatientManager) {
+        webClientPatientManager = pWebClientPatientManager;
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
     public DiabetesEvalReportDTO evaluateDiabetes(final MedicalFileDTO medicalFileDTO) {
+        String uri = "/patients/id?patientId=" + medicalFileDTO.getPatientId();
+
+        Mono<PatientDetailsDTO> patientMono = webClientPatientManager.get()
+                .uri(uri)
+                .retrieve()
+                .bodyToMono(PatientDetailsDTO.class);
+
+        patientMono.subscribe(p -> {
+            patient = p;
+        });
 
         String concatenation = concatenateNotes(medicalFileDTO.getVisits());
         log.debug("Notes concatenation = {}", concatenation);
@@ -39,7 +78,16 @@ public class DiabetesEvaluationService implements IDiabetesEvaluationService {
         String report = generateDiabetesEvaluation(medicalFileDTO.getAge(), count, medicalFileDTO.getGender());
         log.debug("Diabetes evaluation report = {}", report);
 
-        return new DiabetesEvalReportDTO(count, report);
+        while (patient == null) {
+            try {
+                Thread.sleep(TIME_TO_WAIT);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        log.info(patient.toString());
+        return new DiabetesEvalReportDTO(patient, count, report);
     }
 
     /**

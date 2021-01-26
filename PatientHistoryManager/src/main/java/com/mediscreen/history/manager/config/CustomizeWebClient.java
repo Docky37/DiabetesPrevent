@@ -33,4 +33,15 @@ public class CustomizeWebClient {
         };
     }
 
+    /**
+     * Defines the WebClient beans to deal with PatientManager API.
+     *
+     * @return a WebClient
+     */
+    @Bean
+    public WebClient getWebClientPatientManager() {
+        //return WebClient.create("http://127.0.0.1:8081"); // run from IDE
+        return WebClient.create("http://pat-manag:8081"); // Docker
+    }
+
 }
