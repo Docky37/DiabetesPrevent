@@ -59,7 +59,7 @@ public class PatientHistoryManagerApplication {
      */
     private ApiInfo infoDetails() {
         return new ApiInfo("DiabetesPrevent - PatientHistoryManager",
-                "Help to prevent Diabetes", "v1.0.1", "Mediscreen Software",
+                "Help to prevent Diabetes", "v1.0.2", "Mediscreen Software",
                 new springfox.documentation.service.Contact("Thierry Schreiner",
                         "http://doc.diabetes-prevent.com/",
                         "DockyDocs@diabetes-prevent.com"),
