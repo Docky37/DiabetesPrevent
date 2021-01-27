@@ -1,0 +1,72 @@
+version: '3'
+services:
+  pat-manag:
+    image: docky37/diabetes_prevent:patient-manager-v1.02
+    restart: always
+    container_name: pat-manag
+    ports:
+      - '8081:8081'
+    networks:
+      - default
+    depends_on:
+      - patient
+
+  patientv1:
+    image: docky37/diabetes_prevent:patient-v1.02
+    container_name: patientv1
+    ports:
+      - '7788:7788'
+    networks:
+      - default
+    depends_on:
+      - patient_db
+
+  patient_db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'patient_db'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'poiuyTREZA123'
+      MYSQL_ROOT_PASSWORD: 'poiuyTREZA123'
+    container_name:
+      patient_db
+    ports:
+      - '3306:3306'
+    networks:
+      - default
+    volumes:
+      - my-db:/var/lib/mysql
+
+  phistomng:
+    image: docky37/diabetes_prevent:patient-history-manager-v1.02
+    container_name: phistomng
+    ports:
+      - '8082:8082'
+    networks:
+      - default
+    depends_on:
+      - pat-histo
+
+  pat-histo:
+    image: docky37/diabetes_prevent:patient-history-v1.02
+    container_name: pat-histo
+    ports:
+      - '7799:7799'
+    networks:
+      - default
+    depends_on:
+      - p-histodb
+
+  p-histodb:
+    image: docky37/diabetes_prevent:p-histodb-v1.0
+    container_name: p-histodb
+    ports:
+      - '27017:27017'
+    networks:
+      - default
+    volumes:
+      - ./mongo-volume:/data/db
+
+volumes:
+  my-db:
