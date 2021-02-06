@@ -19,7 +19,7 @@ the Spring Data Rest application 'Patient' connected to a MySQL database.
 and the Spring Data Rest application 'PatientHistory' connected to a MongoDB database.
 
 
-![Architecture overview](https://github.com/Docky37/DiabetesPrevent/edit/main/architecture_P9.jpg)
+![Architecture overview](architecture_P9.jpg)
 
 **Here, we are in the folder of 'PatientHistoryManager' microservice.**
 
