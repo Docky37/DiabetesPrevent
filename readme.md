@@ -21,8 +21,6 @@ and the Spring Data Rest application 'PatientHistory' connected to a MongoDB dat
 
 ![Architecture overview](architecture_P9.jpg)
 
-**Here, we are in the folder of 'PatientHistoryManager' microservice.**
-
 
 ## Technical
 
